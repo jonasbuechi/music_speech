@@ -3,7 +3,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.signal import hann
 from scipy.io import wavfile
-from scipy.io import wavfile
 	
 def get_mag_phs(re, im):
 	return np.sqrt(re**2 + im**2), np.angle(re + im * 1j)

@@ -1,6 +1,4 @@
-import os
 import numpy as np
-import matplotlib.pyplot as plt
 from scipy.signal import hann
 from scipy.io import wavfile
 	
@@ -49,28 +47,3 @@ def idft(re, im, step_size=256, fft_size=512):
 	for hop_i, frame in enumerate(recon):
 		signal[(hop_i * step_size): (hop_i * step_size + fft_size)] += frame
 	return signal
-
-""" 
-music_dir = os.path.join('gtzan_music_speech/music_speech', 'music_wav')
-music = [os.path.join(music_dir, file_i) for file_i in os.listdir(music_dir) if file_i.endswith('.wav')]
-
-# Similarly, for the speech folder:
-speech_dir = os.path.join('gtzan_music_speech/music_speech', 'speech_wav')
-speech = [os.path.join(speech_dir, file_i) for file_i in os.listdir(speech_dir) if file_i.endswith('.wav')]
-		  
-print (len(music), len(speech))
-
-mus0 = load_wav(music[0])
-plt.plot(mus0)
-plt.show()
-
-re, im = dft(mus0)
-mag, phs = get_mag_phs(re, im)
-mag = mag.T #transpose
-magl = np.log(mag)
-print(mag.shape)
-plt.imshow(magl)
-plt.xlabel('t')
-plt.ylabel('frequency')
-plt.show()
- """

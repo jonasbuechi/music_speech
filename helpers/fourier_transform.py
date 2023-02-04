@@ -2,39 +2,70 @@ import numpy as np
 from scipy.signal import hann
 from scipy.io import wavfile
 	
-def get_mag_phs(re, im):
-	return np.sqrt(re**2 + im**2), np.angle(re + im * 1j)
+def get_mag_phs(re_im):
+    mag_phs=[]
+    for c in re_im:
+        re=c[0]
+        im=c[1]
+        mag_phs.append([np.sqrt(re**2 + im**2), np.angle(re + im * 1j)])
+    return np.array(mag_phs)
 
-def get_r_i(mag, phs):
-	return mag * np.cos(phs), mag * np.sin(phs)
+
+def get_logmag(re_im):
+    logmag=[]
+    for c in re_im:
+        re=c[0]
+        im=c[1]
+        logmag.append(np.log(np.sqrt(re**2 + im**2)))
+    return np.array(logmag)
 
 
-def load_wav(filename):
-	_, w = wavfile.read(filename)
-	w = w.astype(np.float32)
-	norm = np.max(np.abs(w))
-	w = w / norm
-	w -= np.mean(w)
-	return w
-	
+def get_re_im(mag_phs):
+    re_im=[]
+    for c in mag_phs:
+        mag=c[0]
+        phs=c[1]
+        re_im.append([mag * np.cos(phs), mag * np.sin(phs)])
+    return np.array(re_im)
 
-def dft(signal, step_size=256, fft_size=512):
-	n_steps = len(signal) // step_size
-	s = []
-	hann_win = hann(fft_size)
-	for hop_i in range(n_steps):
-		frame = signal[(hop_i * step_size):(hop_i * step_size + fft_size)]
-		frame = np.pad(frame, (0, fft_size - len(frame)), 'constant')
-		frame *= hann_win
-		s.append(frame)
-	s = np.array(s)
-	N = s.shape[-1]
-	k = np.reshape(np.linspace(0.0, 2 * np.pi / N * (N // 2), N // 2), [1, N // 2])
-	x = np.reshape(np.linspace(0.0, N - 1, N), [N, 1])
-	freqs = np.dot(x, k)
-	reals = np.dot(s, np.cos(freqs)) * (2.0 / N)
-	imags = np.dot(s, np.sin(freqs)) * (2.0 / N)
-	return reals, imags
+
+def load_wav(filenames):
+    wl=[]
+    for name in filenames:
+        _, w = wavfile.read(name)
+        w = w.astype(np.float32)
+        norm = np.max(np.abs(w))
+        w = w / norm
+        w -= np.mean(w)
+        wl.append(w)
+    return np.array(wl)
+
+
+def dft(sounds, fft_chunks, fft_step=256, fft_size=512):
+    #fft_chunks = len(sounds[0]) // fft_step
+    hann_win = hann(fft_size)
+    re_im = []
+    for signal in sounds:
+        s = []
+        for i in range(fft_chunks):
+            frame = signal[(i * fft_step):(i * fft_step + fft_size)]
+            frame = np.pad(frame, (0, fft_size - len(frame)), 'constant')
+            frame *= hann_win
+            s.append(frame)
+        s = np.array(s)
+        N = s.shape[-1]
+        k = np.reshape(np.linspace(0.0, 2 * np.pi / N * (N // 2), N // 2), [1, N // 2])
+        x = np.reshape(np.linspace(0.0, N - 1, N), [N, 1])
+        freqs = np.dot(x, k)
+        reals = np.dot(s, np.cos(freqs)) * (2.0 / N)
+        imags = np.dot(s, np.sin(freqs)) * (2.0 / N)
+        re_im.append([reals,imags])
+    return np.array(re_im)
+
+
+def dft_logmag(sounds, fft_chunks, fft_step=256, fft_size=512):
+    re_im = dft(sounds, fft_chunks, fft_step, fft_size)
+    return get_logmag(re_im)
 
 
 def idft(re, im, step_size=256, fft_size=512):

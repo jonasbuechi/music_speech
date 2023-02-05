@@ -68,6 +68,17 @@ def dft_logmag(sounds, fft_chunks, fft_step=256, fft_size=512):
     return get_logmag(re_im)
 
 
+def patches(sounds, patch_step, patch_size):
+    num_sounds, num_samples, num_frequencies = sounds.shape
+    num_patches = num_samples // patch_step
+    if num_samples%patch_step>0: num_patches-=1
+    p = np.zeros((num_sounds,num_patches,patch_size,num_frequencies))
+    for i in range(num_sounds):
+        for j in range(num_patches):
+            p[i,j,:,:] = sounds[i,(j*patch_step):(j*patch_step+patch_size),:]
+    return p
+
+
 def idft(re, im, step_size=256, fft_size=512):
 	N = re.shape[1] * 2
 	k = np.reshape(np.linspace(0.0, 2 * np.pi / N * (N // 2), N // 2), [N // 2, 1])
